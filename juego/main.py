@@ -30,7 +30,7 @@ pygame.draw.rect(game_over_box, ROJO, game_over_box.get_rect(), 2)
 game_over_superficie = font.render('GAME OVER', False, ROJO)
 game_over_rect = game_over_superficie.get_rect(center=(200, 70))
 
-# Agregar texto de instrucción
+#texto de reinicio
 restart_text = font.render(' ENTER para reiniciar', False, ROJO)
 restart_rect = restart_text.get_rect(center=(200, 130))
 
