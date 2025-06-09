@@ -159,6 +159,7 @@ class Game :
                 if alien_hit:
                     self.explosion_sonido.play()
                     for alien in alien_hit:
+                        self.revisar_puntacion_alta()
                         self.puntaje += alien.type * 100
                         laser_sprite.kill()   
                         
@@ -173,6 +174,7 @@ class Game :
                 #-nave misteriosa-
                 if pygame.sprite.spritecollide(laser_sprite, self.nave_misteriosa_grupo, True):
                     self.puntaje += 500
+                    self.revisar_puntacion_alta()
                     self.explosion_sonido.play()
                     laser_sprite.kill()
                     
@@ -253,20 +255,16 @@ class Game :
     def revisar_puntacion_alta(self):
         if self.puntaje > self.puntaje_mas_alto:
             self.puntaje_mas_alto = self.puntaje
+
             with open('puntaje_alto.txt', "w") as file:
                 file.write(str(self.puntaje_mas_alto))
 
     def cargar_puntaje_alto(self):
         try:
-            with open('puntaje_alto.txt', 'r') as file:
-                contenido = file.read().strip()
-                if contenido:
-                    self.puntaje_mas_alto = int(contenido)
-                else:
-                    self.puntaje_mas_alto = 0
-        except (FileNotFoundError, ValueError):
+
+                with open('puntaje_alto.txt', 'r') as file:
+                    self.puntaje_mas_alto = int(file.read())
+        except FileNotFoundError:
             self.puntaje_mas_alto = 0
-            # Crear el archivo si no existe
-            with open('puntaje_alto.txt', 'w') as file:
-                file.write('0')
+
 
