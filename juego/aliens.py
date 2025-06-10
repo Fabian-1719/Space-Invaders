@@ -1,4 +1,3 @@
-# aliens.py - Versión mejorada con soporte para niveles
 
 import pygame
 import random

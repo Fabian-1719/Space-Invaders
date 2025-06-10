@@ -3,6 +3,10 @@
 import pygame, sys
 from game import Game
 import random
+from interfaz_usuario import InterfazUsuario, MenuPrincipal
+from usuario import obtener_o_crear_usuario
+from pantallas_extras import PantallaHistorial, PantallaTop5
+
 
 pygame.init()
 
@@ -33,7 +37,7 @@ restart_text = font.render(' ENTER para reiniciar', False, ROJO)
 restart_rect = restart_text.get_rect(center=(200, 130))
 
 #texto de continuar
-continuar_text = font.render(' ENTER para continuar', False, VERDE)
+continuar_text = font.render('Enter para continuar ', False, VERDE)
 continuar_rect = continuar_text.get_rect(center=(200, 130))
 
 # Mensaje de victoria
@@ -72,6 +76,63 @@ pygame.time.set_timer(nave_misteriosa, random.randint(4000, 8000))
 
 # Variable para rastrear cambios de nivel
 nivel_anterior = game.nivel_actual
+
+interfaz = InterfazUsuario(screen, font)
+menu = MenuPrincipal(screen, font)
+
+# Paso 1: Pantalla de inicio (usuario + nickname)
+usuario_confirmado = False
+while not usuario_confirmado:
+    interfaz.mostrar_pantalla_inicio()
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            pygame.quit()
+            sys.exit()
+        if interfaz.manejar_evento_inicio(event):
+            usuario_confirmado = True
+
+nombre_usuario, nickname = interfaz.obtener_datos()
+obtener_o_crear_usuario(nombre_usuario, nickname)
+game.set_usuario(nombre_usuario, nickname)
+
+while True:
+    # Paso 2: Menú principal
+    modo = None
+    while modo is None:
+        menu.mostrar_menu()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            modo = menu.manejar_evento_menu(event)
+
+    # Paso 3: Actuar según la opción elegida
+    if modo == 0:
+        game.modo = "niveles"
+        game.nivel_actual = 1
+        game.reinicio()
+        game.corre = True
+        break  # Salir del menú y entrar al juego
+
+    elif modo == 1:
+        game.modo = "infinito"
+        game.nivel_actual = 1
+        game.reinicio()
+        game.corre = True
+        break  # Salir del menú y entrar al juego
+
+    elif modo == 2:
+        historial = PantallaHistorial(screen, font, nombre_usuario)
+        historial.mostrar()
+        # Volver al menú (no continuar el juego)
+        continue
+
+    elif modo == 3:
+        top = PantallaTop5(screen, font)
+        top.mostrar()
+        # Volver al menú
+        continue
+
 
 while True:
     # Revisar eventos
@@ -122,6 +183,9 @@ while True:
         game.nave_misteriosa_grupo.update()
         game.check_colisiones()
 
+    if game.modo == "infinito":
+        game.jugar_infinito()
+
         # Desactivar power-ups temporales si expiraron
     if game.power_up_activo in ['disparo_rapido', 'inmune']:
         if pygame.time.get_ticks() > game.power_up_duracion:
@@ -153,9 +217,14 @@ while True:
 
     # Dibujar puntaje más alto
     screen.blit(puntaje_alto_texto_superficie, (600, 15, 50, 50))
-    formato_puntaje_alto = str(game.puntaje_mas_alto).zfill(5)
+    formato_puntaje_alto = f"{game.nickname_puntaje} - {str(game.puntaje_mas_alto).zfill(5)}"
     puntaje_alto_superficie = font.render(formato_puntaje_alto, False, AMARILLO)
     screen.blit(puntaje_alto_superficie, (645, 40))
+
+    # Mostrar modo infinito si aplica
+    if game.modo == "infinito":
+        infinito_texto = font.render("MODO INFINITO", False, VERDE)
+        screen.blit(infinito_texto, (270, 20))
 
     # Dibujar vidas
     game.dibujar_vidas(screen)

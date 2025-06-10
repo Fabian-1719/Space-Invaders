@@ -1,0 +1,84 @@
+{
+    "FABIA": {
+        "nickname": "FFF",
+        "historial": []
+    },
+    "FABIAN": {
+        "nickname": "FFF",
+        "historial": [
+            {
+                "fecha": "2025-06-10 01:31:34",
+                "modo": "infinito",
+                "puntaje": 1400
+            },
+            {
+                "fecha": "2025-06-10 01:16:34",
+                "modo": "infinito",
+                "puntaje": 100
+            },
+            {
+                "fecha": "2025-06-10 01:16:29",
+                "modo": "infinito",
+                "puntaje": 29600
+            },
+            {
+                "fecha": "2025-06-10 01:15:12",
+                "modo": "infinito",
+                "puntaje": 6300
+            },
+            {
+                "fecha": "2025-06-10 01:13:15",
+                "modo": "infinito",
+                "puntaje": 13800
+            },
+            {
+                "fecha": "2025-06-10 01:07:31",
+                "modo": "infinito",
+                "puntaje": 15900
+            },
+            {
+                "fecha": "2025-06-10 01:02:47",
+                "modo": "infinito",
+                "puntaje": 13400
+            },
+            {
+                "fecha": "2025-06-10 00:52:44",
+                "modo": "infinito",
+                "puntaje": 2000
+            },
+            {
+                "fecha": "2025-06-10 00:35:44",
+                "modo": "infinito",
+                "puntaje": 3500
+            },
+            {
+                "fecha": "2025-06-10 00:35:32",
+                "modo": "infinito",
+                "puntaje": 2700
+            },
+            {
+                "fecha": "2025-06-10 00:35:19",
+                "modo": "infinito",
+                "puntaje": 0
+            },
+            {
+                "fecha": "2025-06-10 00:34:42",
+                "modo": "infinito",
+                "puntaje": 2400
+            },
+            {
+                "fecha": "2025-06-10 00:34:30",
+                "modo": "infinito",
+                "puntaje": 400
+            }
+        ]
+    },
+    "G": {
+        "nickname": "GAT",
+        "historial": []
+    },
+    "fabian": {
+        "nickname": "FFF",
+        "historial": []
+    }
+}

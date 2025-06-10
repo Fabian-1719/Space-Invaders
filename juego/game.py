@@ -1,5 +1,3 @@
-# game.py - Versión mejorada con sistema de niveles
-
 import pygame
 import random
 from spaceship import Nave
@@ -8,6 +6,8 @@ from obstaculos import cuadro
 from aliens import Alien
 from lasers import Laser
 from aliens import Nave_misteriosa
+from usuario import guardar_partida, guardar_usuarios
+
 
 class Game:
     def __init__(self, ancho_pantalla, alto_pantalla, offset):
@@ -57,6 +57,11 @@ class Game:
         self.power_up_duracion = 0
         self.power_up_imagen = None
         self.inmune = False
+
+        self.nombre_usuario = ""
+        self.nickname = ""
+
+        self.modo = "niveles"  # Valor por defecto
     
     #funcion que configura los siguientes
     def configurar_nivel(self):
@@ -193,22 +198,23 @@ class Game:
                 if alien_hit:
                     self.explosion_sonido.play()
                     for alien in alien_hit:
-                        self.revisar_puntacion_alta()
-                        # Puntos aumentan con el nivel
+                        self.revisar_puntacion_alta(self.nickname)
                         puntos_base = alien.type * 100
                         puntos_nivel = puntos_base * self.nivel_actual
                         self.puntaje += puntos_nivel
                         laser_sprite.kill()
                         self.aliens_eliminados += 1
-                        
+
                         # Verificar si se completó el nivel
                         if self.aliens_eliminados >= self.aliens_iniciales:
-                            self.siguiente_nivel()
+                            if self.modo == "niveles":
+                                self.siguiente_nivel()
+            # En modo infinito NO se avanza de nivel aquí — se maneja por jugar_infinito()
 
                 # Nave misteriosa
                 if pygame.sprite.spritecollide(laser_sprite, self.nave_misteriosa_grupo, True):
                     self.puntaje += self.nave_misteriosa_puntos
-                    self.revisar_puntacion_alta()
+                    self.revisar_puntacion_alta(self.nickname)
                     self.explosion_sonido.play()
                     laser_sprite.kill()
 
@@ -245,40 +251,42 @@ class Game:
                     self.game_over()
 
     def siguiente_nivel(self):
-        """Avanza al siguiente nivel"""
-        if self.nivel_actual < 3:
-            self.nivel_actual += 1
-            self.configurar_nivel()
-            #para la musica acyual y pone la del nivel 2
-            pygame.mixer.music.stop()
-            pygame.mixer.music.load('sonidos/nivel_2.mp3')
-            pygame.mixer.music.play(-1)
-            pygame.mixer.music.set_volume(1.0)
-            
-            # Recrear elementos para el nuevo nivel
-            self.crear_aliens()
-            self.obstaculos = self.crear_obstaculos()
-            
-            # Bonificación por completar nivel
-            self.puntaje += 1000 * self.nivel_actual
-            self.revisar_puntacion_alta()
-            
-            # Restaurar algo de vida si está muy bajo
-            if self.vidas < 2:
-                self.vidas += 1
-            #esto servira para que el juego se detenga antes de avanzar al suguiente nivel
-            self.corre = False
-            self.transicion_nivel = True
-                
-        else:
-            # Juego completado
+        """Avanza al siguiente nivel o continúa infinito"""
+        self.nivel_actual += 1
+        self.configurar_nivel()
+
+        if self.modo == "niveles" and self.nivel_actual > 3:
             self.victoria()
+            return
+
+        # Reconfigurar
+        pygame.mixer.music.stop()
+        if self.modo == "niveles":
+            pygame.mixer.music.load('sonidos/nivel_2.mp3')
+        else:
+            pygame.mixer.music.load('sonidos/Sounds_music.ogg')  # misma música en infinito
+
+        pygame.mixer.music.play(-1)
+        pygame.mixer.music.set_volume(1.0)
+
+        self.crear_aliens()
+        self.obstaculos = self.crear_obstaculos()
+
+        self.puntaje += 1000 * self.nivel_actual
+        self.revisar_puntacion_alta(self.nickname)
+
+        if self.vidas < 2:
+            self.vidas += 1
+
+        self.corre = False
+        self.transicion_nivel = True
+
 
     def victoria(self):
         """Maneja la victoria del juego"""
         self.corre = False
         self.puntaje += 5000  # Bonificación por completar todos los niveles
-        self.revisar_puntacion_alta()
+        self.revisar_puntacion_alta(self.nickname)
         # Aquí podrías agregar música de victoria
         try:
             pygame.mixer.music.stop()
@@ -286,6 +294,7 @@ class Game:
             pygame.mixer.music.play(-1)
         except pygame.error:
             pygame.mixer.music.stop()
+        
 
     def game_over(self):
         """Finaliza el juego"""
@@ -297,7 +306,25 @@ class Game:
             pygame.mixer.music.play(-1)
         except pygame.error:
             pygame.mixer.music.stop()
+        guardar_partida(self.nombre_usuario, self.puntaje, "infinito")
 
+    def jugar_infinito(self):
+        """Loop del nivel infinito: aliens se regeneran automáticamente con más dificultad."""
+        if not self.aliens_grupo:
+            self.nivel_actual += 1  # Usamos esto para escalar dificultad
+            self.configurar_nivel_infinito()
+            self.crear_aliens()
+            self.obstaculos = self.crear_obstaculos()
+            self.puntaje += 250 * self.nivel_actual
+            self.revisar_puntacion_alta(self.nickname)
+
+    def configurar_nivel_infinito(self):
+        """Escala la dificultad para modo infinito."""
+        self.alien_velocidad = min(1 + self.nivel_actual * 0.2, 5)
+        self.alien_laser_frecuencia = max(300 - self.nivel_actual * 10, 80)
+        self.alien_descenso = min(2 + self.nivel_actual // 2, 6)
+        self.nave_misteriosa_puntos = 500 + (self.nivel_actual * 100)
+        self.velocidad_nave_misteriosa = min(3 + self.nivel_actual // 2, 8)
     def reinicio(self):
         """Reinicia el juego al nivel 1"""
         pygame.mixer.music.stop()
@@ -308,7 +335,11 @@ class Game:
         self.corre = True
         self.vidas = 3
         self.nivel_actual = 1
-        self.configurar_nivel()
+        if self.modo == "infinito":
+            self.configurar_nivel_infinito()
+        else:
+            self.configurar_nivel()
+
         
         self.nave_grupo.sprite.reinicio()
         self.aliens_grupo.empty()
@@ -324,8 +355,13 @@ class Game:
         return self.alien_laser_frecuencia
 
     def get_nivel_texto(self):
-        """Retorna el texto del nivel actual"""
-        return f"NIVEL {self.nivel_actual:02d}"
+    #Retorna el texto del nivel actual u oleada según el modo
+        if self.modo == "infinito":
+            return f"OLEADA {self.nivel_actual:02d}"
+        else:
+            return f"NIVEL {self.nivel_actual:02d}"
+
+
 
     def dibujar_vidas(self, surface):
         """Dibuja los iconos de vidas en la pantalla"""
@@ -335,20 +371,26 @@ class Game:
             self.vida_rect.y = self.vida_pos_y
             surface.blit(self.image, self.vida_rect)
 
-    def revisar_puntacion_alta(self):
-        """Verifica y guarda la puntuación más alta"""
+    def revisar_puntacion_alta(self, nickname):
         if self.puntaje > self.puntaje_mas_alto:
             self.puntaje_mas_alto = self.puntaje
             with open('puntaje_alto.txt', "w") as file:
-                file.write(str(self.puntaje_mas_alto))
+                file.write(f"{nickname} - {self.puntaje_mas_alto}")
 
     def cargar_puntaje_alto(self):
-        """Carga la puntuación más alta desde archivo"""
         try:
             with open('puntaje_alto.txt', 'r') as file:
-                self.puntaje_mas_alto = int(file.read())
+                contenido = file.read().strip()
+                if ' - ' in contenido:
+                    self.nickname_puntaje, valor = contenido.split(" - ")
+                    self.puntaje_mas_alto = int(valor)
+                else:
+                    self.nickname_puntaje = '---'
+                    self.puntaje_mas_alto = 0
         except FileNotFoundError:
+            self.nickname_puntaje = '---'
             self.puntaje_mas_alto = 0
+
 
 
     def activar_power_up(self):
@@ -374,4 +416,6 @@ class Game:
             except:
                 self.power_up_imagen = None
 
-    
+    def set_usuario(self, nombre_usuario, nickname):
+        self.nombre_usuario = nombre_usuario
+        self.nickname = nickname
