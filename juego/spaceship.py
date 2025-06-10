@@ -21,6 +21,9 @@ class Nave (pygame.sprite.Sprite):
         self.laser_delay = 300
         #musica para los laser
         self.laser_sonido = pygame.mixer.Sound('sonidos/Sounds_laser.ogg')
+        self.tiempo_ultimo_disparo = 0
+        self.frecuencia_disparo = 400  # milisegundos entre disparos
+
 
 
     def user_input(self):
@@ -66,3 +69,4 @@ class Nave (pygame.sprite.Sprite):
     def reinicio(self):
         self.rect = self.image.get_rect(midbottom = ((self.ancho_pantalla + self.offset) / 2, self.alto_pantalla))
         self.lasers_group.empty()
+

@@ -1,8 +1,8 @@
+# main.py - Versión actualizada con sistema de niveles
+
 import pygame, sys
 from game import Game
 import random
-
-
 
 pygame.init()
 
@@ -10,70 +10,111 @@ ANCHO_PANTALLA = 750
 ALTO_PANTALLA = 730
 OFFSET = 50
 
-
 Gris = (29, 29, 27)
 MORADO = (128, 0, 128)
 ROJO = (255, 0, 0)
 AMARILLO = (255, 255, 0)
+VERDE = (0, 255, 0)
 
-# superficie que muentra el mensaje de el nivel en que te encuentras 
-font = pygame.font.Font('Font/monogram.ttf', 40)  # crea una funte para el mensaje de texto
-nivel_superficie =font.render('NIVEL 01', False, AMARILLO ) # el False es para no usar el argumento anti-alias por que se esta usando pixelart
+# Fuente para textos
+font = pygame.font.Font('Font/monogram.ttf', 40)
 
-#mensaje de game over
-# Crear superficie para el cuadro de Game Over
+# Mensaje de game over
 game_over_box = pygame.Surface((400, 200))
 game_over_box.fill(Gris)
 pygame.draw.rect(game_over_box, ROJO, game_over_box.get_rect(), 2)
 
-# Centrar el texto "GAME OVER" en el cuadro
+#texto de game over
 game_over_superficie = font.render('GAME OVER', False, ROJO)
 game_over_rect = game_over_superficie.get_rect(center=(200, 70))
 
-#texto de reinicio
+#texto de reiniciar
 restart_text = font.render(' ENTER para reiniciar', False, ROJO)
 restart_rect = restart_text.get_rect(center=(200, 130))
+
+#texto de continuar
+continuar_text = font.render(' ENTER para continuar', False, VERDE)
+continuar_rect = continuar_text.get_rect(center=(200, 130))
+
+# Mensaje de victoria
+victory_box = pygame.Surface((400, 200))
+victory_box.fill(Gris)
+pygame.draw.rect(victory_box, VERDE, victory_box.get_rect(), 2)
+
+victory_superficie = font.render('¡VICTORIA!', False, VERDE)
+victory_rect = victory_superficie.get_rect(center=(200, 70))
+
+victory_restart_text = font.render(' ENTER para reiniciar', False, VERDE)
+victory_restart_rect = victory_restart_text.get_rect(center=(200, 130))
+
+# Cuadro de transición entre niveles
+transicion_box = pygame.Surface((400, 200))
+transicion_box.fill(Gris)
+pygame.draw.rect(transicion_box, VERDE, transicion_box.get_rect(), 2)
 
 screen = pygame.display.set_mode((ANCHO_PANTALLA + OFFSET, ALTO_PANTALLA + 2 * OFFSET))
 pygame.display.set_caption('Space Invaders')
 
-#muestra el puntaje del jugador actual
+# Superficies de texto
 puntaje_texto_superficie = font.render('SCORE', False, AMARILLO)
-
-#muestra la puntuacion mas alta
-puntaje_alto_texto_superficie = font.render('HIGH-SCORE',  False, AMARILLO)
+puntaje_alto_texto_superficie = font.render('HIGH-SCORE', False, AMARILLO)
 
 clock = pygame.time.Clock()
-
 game = Game(ALTO_PANTALLA, ANCHO_PANTALLA, OFFSET)
 
-#un temporizador para que los lasers no se disparen a lo loco
-disparo_laser =  pygame.USEREVENT  #userevent es para crear eventos perspnalizados
-pygame.time.set_timer(disparo_laser, 300) #con esto se consigue que disparen  cada 300 milisegundos
+# Temporizadores
+disparo_laser = pygame.USEREVENT
+# Inicializar con la frecuencia del nivel 1
+pygame.time.set_timer(disparo_laser, game.get_alien_laser_frecuencia())
 
-# se creara un temporizador que sera el encargado de ecir cada cuanto aparece la nave misteriosa
 nave_misteriosa = pygame.USEREVENT + 1
-pygame.time.set_timer(nave_misteriosa,random.randint(4000, 8000))
+pygame.time.set_timer(nave_misteriosa, random.randint(4000, 8000))
+
+# Variable para rastrear cambios de nivel
+nivel_anterior = game.nivel_actual
 
 while True:
-    # revisa los eventos
+    # Revisar eventos
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
+            
         if event.type == disparo_laser and game.corre:
-            game.laser_alien()         
-
+            game.laser_alien()
+            
         if event.type == nave_misteriosa:
             game.crear_nave_misteriosa()
-            pygame.time.set_timer(nave_misteriosa,random.randint(4000, 8000))
+            pygame.time.set_timer(nave_misteriosa, random.randint(4000, 8000))
 
-        #esto hara que si se presione la tecla de espacio se reinicie el juego si ya se perdieron todas las vidas
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_SPACE] and game.corre == False:
-            game.reinicio()
+        # Manejo de teclas
+        if event.type == pygame.KEYDOWN:
+            # ✅ SPACE solo reinicia si el juego está detenido y NO está en transición de nivel
+            if event.key == pygame.K_SPACE and not game.corre and not game.transicion_nivel:
+                game.reinicio()
+                pygame.time.set_timer(disparo_laser, game.get_alien_laser_frecuencia())
+                nivel_anterior = game.nivel_actual
 
-    #actualizando constantementea
+            # ✅ ENTER controla tanto transición como reinicio según el caso
+            if event.key == pygame.K_RETURN and not game.corre:
+                if game.transicion_nivel:
+                    game.corre = True
+                    game.transicion_nivel = False
+                    pygame.time.set_timer(disparo_laser, game.get_alien_laser_frecuencia())
+                    nivel_anterior = game.nivel_actual
+                else:
+                    game.reinicio()
+                    pygame.time.set_timer(disparo_laser, game.get_alien_laser_frecuencia())
+                    nivel_anterior = game.nivel_actual
+
+
+
+    # Actualizar frecuencia de disparo si cambió el nivel
+    if game.nivel_actual != nivel_anterior:
+        pygame.time.set_timer(disparo_laser, game.get_alien_laser_frecuencia())
+        nivel_anterior = game.nivel_actual
+
+    # Actualizar juego
     if game.corre:
         game.nave_grupo.update()
         game.mover_aliens()
@@ -81,60 +122,101 @@ while True:
         game.nave_misteriosa_grupo.update()
         game.check_colisiones()
 
-    
+        # Desactivar power-ups temporales si expiraron
+    if game.power_up_activo in ['disparo_rapido', 'inmune']:
+        if pygame.time.get_ticks() > game.power_up_duracion:
+            if game.power_up_activo == 'disparo_rapido':
+                game.nave_grupo.sprite.laser= 50   # Valor normal
 
-    # dibuja 
+            elif game.power_up_activo == 'inmune':
+                game.inmune = False
+
+            game.power_up_activo = None
+            game.power_up_duracion = 0
+            game.power_up_imagen = None
+        
+
+    # Dibujar
     screen.fill(Gris)
-    #dibuja un rectangulo en la pantalla. tamaño . grosor. radios de las esquinas       
-    pygame.draw.rect(screen, MORADO, (10, 10, 782, 810 ), 2, 0, 60, 60, 60, 60)
+    pygame.draw.rect(screen, MORADO, (10, 10, 782, 810), 2, 0, 60, 60, 60, 60)
     pygame.draw.line(screen, MORADO, (25, 750), (775, 750), 3)
+    
+    # Dibujar elementos del juego
     game.nave_grupo.draw(screen)
-    game.nave_grupo.sprite.lasers_group.draw(screen)   #dibuja los lasers
+    game.nave_grupo.sprite.lasers_group.draw(screen)
 
-    #dibuja el puntaje
+    # Dibujar puntaje
     screen.blit(puntaje_texto_superficie, (50, 15, 50, 50))
-    formato_puntaje = str(game.puntaje).zfill(5)   # convierte la puntuacion en una cadena llena de 5 ceros
+    formato_puntaje = str(game.puntaje).zfill(5)
     puntaje_superficie = font.render(str(formato_puntaje), False, AMARILLO)
     screen.blit(puntaje_superficie, (50, 40, 50, 50))
 
-    #dibuja el puntaje mas alto
+    # Dibujar puntaje más alto
     screen.blit(puntaje_alto_texto_superficie, (600, 15, 50, 50))
     formato_puntaje_alto = str(game.puntaje_mas_alto).zfill(5)
     puntaje_alto_superficie = font.render(formato_puntaje_alto, False, AMARILLO)
     screen.blit(puntaje_alto_superficie, (645, 40))
 
-    #dibuja las vidas
+    # Dibujar vidas
     game.dibujar_vidas(screen)
-    
+
+    # Dibujar imagen de power-up activo
+    # Dibujar imagen de power-up activo y tiempo restante
+    if game.power_up_imagen:
+        screen.blit(game.power_up_imagen, (370, 755))
+        
+        # Mostrar tiempo restante si aplica
+        if game.power_up_duracion > 0:
+            tiempo_restante = max(0, (game.power_up_duracion - pygame.time.get_ticks()) // 1000)
+            tiempo_texto = font.render(f'{tiempo_restante}s', False, AMARILLO)
+            screen.blit(tiempo_texto, (420, 760))
+
+        
+    # Dibujar obstáculos y enemigos
     for obstaculo in game.obstaculos:
         obstaculo.blocke_grupo.draw(screen)
     game.aliens_grupo.draw(screen)
     game.alien_lasers_group.draw(screen)
     game.nave_misteriosa_grupo.draw(screen)
-  
-    #se usara el metodo blit que es para transeferir de imagen en bloque la mayor parte del tiempo
+
+    # Dibujar UI según el estado del juego
     if game.corre:
+        # Mostrar nivel actual
+        nivel_superficie = font.render(game.get_nivel_texto(), False, AMARILLO)
         screen.blit(nivel_superficie, (590, 765))
+        
+        # Mostrar indicador de progreso de nivel
+        aliens_restantes = len(game.aliens_grupo.sprites())
+        if aliens_restantes <= 5:  # Mostrar cuando quedan pocos aliens
+            restantes_text = font.render(f'ALIENS: {aliens_restantes}', False, ROJO)
+            screen.blit(restantes_text, (300, 765))
+            
     else:
-        # Calcular posición central de la pantalla
+        # 🖼️ Mostrar mensaje central cuando el juego está detenido (Game Over, Victoria o Transición)
         box_x = (ANCHO_PANTALLA + OFFSET - 400) // 2
         box_y = (ALTO_PANTALLA + 2 * OFFSET - 200) // 2
-        
-        # Dibuja el cuadro y los textos que trabaj en el game over
-        if game.corre:
-            screen.blit(nivel_superficie, (590, 765))
+
+        if game.transicion_nivel:
+            # 🟡 TRANSICIÓN DE NIVEL (cuadro verde)
+            screen.blit(transicion_box, (box_x, box_y))
+            transicion_text = font.render('NIVEL COMPLETADO', False, VERDE)
+            transicion_rect = transicion_text.get_rect(center=(200, 70))
+            screen.blit(transicion_text, (box_x + transicion_rect.x, box_y + transicion_rect.y))
+            screen.blit(continuar_text, (box_x + continuar_rect.x, box_y + continuar_rect.y))
+
+        elif game.nivel_actual > 3 or (game.aliens_eliminados >= game.aliens_iniciales and game.nivel_actual == 3):
+            # 🟢 VICTORIA FINAL (usa la misma caja pero con mensaje diferente)
+            screen.blit(game_over_box, (box_x, box_y))
+            victoria_text = font.render('¡HAS GANADO!', False, ROJO)
+            victoria_rect = victoria_text.get_rect(center=(200, 70))
+            screen.blit(victoria_text, (box_x + victoria_rect.x, box_y + victoria_rect.y))
+            screen.blit(restart_text, (box_x + restart_rect.x, box_y + restart_rect.y))
+
         else:
-            box_x = (ANCHO_PANTALLA + OFFSET - 400) // 2
-            box_y = (ALTO_PANTALLA + 2 * OFFSET - 200) // 2
+            # 🔴 GAME OVER (muerte o colisión)
             screen.blit(game_over_box, (box_x, box_y))
             screen.blit(game_over_superficie, (box_x + game_over_rect.x, box_y + game_over_rect.y))
             screen.blit(restart_text, (box_x + restart_rect.x, box_y + restart_rect.y))
 
-        
-        # Verificar si se presiona ENTER
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_RETURN]:  # RETURN es la tecla Enter
-            game.reinicio()
-
     pygame.display.update()
-    clock.tick(60)                     # la cantidad de fotogramas
+    clock.tick(60)
