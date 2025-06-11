@@ -105,7 +105,7 @@ class MenuPrincipal:
     def mostrar_menu(self):
         self.pantalla.fill(NEGRO)
         titulo = self.font.render("MENU PRINCIPAL", True, AMARILLO)
-        self.pantalla.blit(titulo, (230, 100))
+        self.pantalla.blit(titulo, (275, 100))
 
         self.pantalla.blit(self.marco_menu, (125, 180))
 

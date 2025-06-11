@@ -42,6 +42,7 @@ class Game:
         self.corre = True
         self.puntaje = 0
         self.puntaje_mas_alto = 0
+        self.modo = "niveles"  # Valor por defecto
         self.cargar_puntaje_alto()
         
         # Audio
@@ -61,8 +62,14 @@ class Game:
         self.nombre_usuario = ""
         self.nickname = ""
 
-        self.modo = "niveles"  # Valor por defecto
-    
+    def configurar_nivel_infinito(self):
+        """Escala la dificultad para modo infinito"""
+        self.alien_velocidad = min(1 + self.nivel_actual * 0.2, 5)
+        self.alien_laser_frecuencia = max(300 - self.nivel_actual * 10, 80)
+        self.alien_descenso = min(2 + self.nivel_actual // 2, 6)
+        self.nave_misteriosa_puntos = 500 + (self.nivel_actual * 100)
+        self.velocidad_nave_misteriosa = min(3 + self.nivel_actual // 2, 8)
+
     #funcion que configura los siguientes
     def configurar_nivel(self):
         """Configura la dificultad según el nivel actual"""
@@ -259,15 +266,22 @@ class Game:
             self.victoria()
             return
 
-        # Reconfigurar
+        # Reconfigurar música según nivel
         pygame.mixer.music.stop()
+
         if self.modo == "niveles":
-            pygame.mixer.music.load('sonidos/nivel_2.mp3')
+            if self.nivel_actual == 2:
+                pygame.mixer.music.load('sonidos/nivel_2.mp3')
+            elif self.nivel_actual == 3:
+                pygame.mixer.music.load('sonidos/nivel_3.mp3')
+            else:
+                pygame.mixer.music.load('sonidos/Sounds_music.ogg')  # música por defecto o futura
         else:
             pygame.mixer.music.load('sonidos/Sounds_music.ogg')  # misma música en infinito
 
         pygame.mixer.music.play(-1)
         pygame.mixer.music.set_volume(1.0)
+
 
         self.crear_aliens()
         self.obstaculos = self.crear_obstaculos()
@@ -306,7 +320,9 @@ class Game:
             pygame.mixer.music.play(-1)
         except pygame.error:
             pygame.mixer.music.stop()
-        guardar_partida(self.nombre_usuario, self.puntaje, "infinito")
+        guardar_partida(self.nombre_usuario, self.puntaje, self.modo)
+        self.nave_grupo.empty()  # Oculta la nave tras perder
+
 
     def jugar_infinito(self):
         """Loop del nivel infinito: aliens se regeneran automáticamente con más dificultad."""
@@ -318,30 +334,26 @@ class Game:
             self.puntaje += 250 * self.nivel_actual
             self.revisar_puntacion_alta(self.nickname)
 
-    def configurar_nivel_infinito(self):
-        """Escala la dificultad para modo infinito."""
-        self.alien_velocidad = min(1 + self.nivel_actual * 0.2, 5)
-        self.alien_laser_frecuencia = max(300 - self.nivel_actual * 10, 80)
-        self.alien_descenso = min(2 + self.nivel_actual // 2, 6)
-        self.nave_misteriosa_puntos = 500 + (self.nivel_actual * 100)
-        self.velocidad_nave_misteriosa = min(3 + self.nivel_actual // 2, 8)
     def reinicio(self):
         """Reinicia el juego al nivel 1"""
         pygame.mixer.music.stop()
         pygame.mixer.music.load('sonidos/Sounds_music.ogg')
         pygame.mixer.music.play(-1)
-        
+
         # Resetear todo al estado inicial
         self.corre = True
         self.vidas = 3
         self.nivel_actual = 1
+
         if self.modo == "infinito":
             self.configurar_nivel_infinito()
         else:
             self.configurar_nivel()
 
-        
-        self.nave_grupo.sprite.reinicio()
+        # ✅ Volver a crear la nave
+        self.nave_grupo.empty()
+        self.nave_grupo.add(Nave(self.ancho_pantalla, self.alto_pantalla, self.offset))
+
         self.aliens_grupo.empty()
         self.alien_lasers_group.empty()
         self.crear_aliens()
@@ -349,6 +361,8 @@ class Game:
         self.obstaculos = self.crear_obstaculos()
         self.puntaje = 0
         self.transicion_nivel = False
+
+        
 
     def get_alien_laser_frecuencia(self):
         """Retorna la frecuencia de disparo actual para usar en main.py"""
@@ -371,15 +385,19 @@ class Game:
             self.vida_rect.y = self.vida_pos_y
             surface.blit(self.image, self.vida_rect)
 
+    #funcion que utiliza dos archivos para las puntuaciones
     def revisar_puntacion_alta(self, nickname):
+        archivo = 'puntaje_alto_niveles.txt' if self.modo == 'niveles' else 'puntaje_alto_infinito.txt'
         if self.puntaje > self.puntaje_mas_alto:
             self.puntaje_mas_alto = self.puntaje
-            with open('puntaje_alto.txt', "w") as file:
+            with open(archivo, "w") as file:
                 file.write(f"{nickname} - {self.puntaje_mas_alto}")
 
+
     def cargar_puntaje_alto(self):
+        archivo = 'puntaje_alto_niveles.txt' if self.modo == 'niveles' else 'puntaje_alto_infinito.txt'
         try:
-            with open('puntaje_alto.txt', 'r') as file:
+            with open(archivo, 'r') as file:
                 contenido = file.read().strip()
                 if ' - ' in contenido:
                     self.nickname_puntaje, valor = contenido.split(" - ")
@@ -390,6 +408,7 @@ class Game:
         except FileNotFoundError:
             self.nickname_puntaje = '---'
             self.puntaje_mas_alto = 0
+
 
 
 

@@ -27,7 +27,7 @@ class PantallaHistorial:
         pygame.draw.rect(self.screen, AMARILLO, cuadro, 4, border_radius=15)
 
         titulo = self.font.render("Historial de Partidas", True, AMARILLO)
-        self.screen.blit(titulo, (170, 100))
+        self.screen.blit(titulo, (210, 100))
 
         if not historial:
             texto = self.font.render("Sin partidas registradas.", True, ROJO)
@@ -65,7 +65,7 @@ class PantallaTop5:
         pygame.draw.rect(self.screen, AZUL_CLARO, cuadro, 4, border_radius=15)
 
         titulo = self.font.render("TOP 5 - Modo Infinito", True, AZUL_CLARO)
-        self.screen.blit(titulo, (170, 120))
+        self.screen.blit(titulo, (210, 120))
 
         if not top5:
             texto = self.font.render("Sin datos aún.", True, ROJO)

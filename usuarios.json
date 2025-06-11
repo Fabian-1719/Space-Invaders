@@ -7,6 +7,66 @@
         "nickname": "FFF",
         "historial": [
             {
+                "fecha": "2025-06-11 01:37:03",
+                "modo": "niveles",
+                "puntaje": 29100
+            },
+            {
+                "fecha": "2025-06-11 01:32:23",
+                "modo": "infinito",
+                "puntaje": 13500
+            },
+            {
+                "fecha": "2025-06-11 01:30:39",
+                "modo": "infinito",
+                "puntaje": 700
+            },
+            {
+                "fecha": "2025-06-11 01:05:48",
+                "modo": "infinito",
+                "puntaje": 6000
+            },
+            {
+                "fecha": "2025-06-11 00:36:56",
+                "modo": "infinito",
+                "puntaje": 300
+            },
+            {
+                "fecha": "2025-06-10 23:49:53",
+                "modo": "infinito",
+                "puntaje": 43900
+            },
+            {
+                "fecha": "2025-06-10 09:18:01",
+                "modo": "infinito",
+                "puntaje": 65700
+            },
+            {
+                "fecha": "2025-06-10 09:14:21",
+                "modo": "infinito",
+                "puntaje": 3500
+            },
+            {
+                "fecha": "2025-06-10 07:34:21",
+                "modo": "infinito",
+                "puntaje": 2200
+            },
+            {
+                "fecha": "2025-06-10 07:33:34",
+                "modo": "infinito",
+                "puntaje": 3900
+            },
+            {
+                "fecha": "2025-06-10 07:33:13",
+                "modo": "infinito",
+                "puntaje": 13300
+            },
+            {
+                "fecha": "2025-06-10 07:32:27",
+                "modo": "infinito",
+                "puntaje": 4100
+            },
+            {
                 "fecha": "2025-06-10 01:31:34",
                 "modo": "infinito",
                 "puntaje": 1400
@@ -80,5 +140,55 @@
     "fabian": {
         "nickname": "FFF",
         "historial": []
+    },
+    "BRACK": {
+        "nickname": "FUK",
+        "historial": [
+            {
+                "fecha": "2025-06-10 09:29:44",
+                "modo": "infinito",
+                "puntaje": 18400
+            }
+        ]
+    },
+    "NAHUMMURILLO": {
+        "nickname": "NAU",
+        "historial": [
+            {
+                "fecha": "2025-06-10 16:29:26",
+                "modo": "infinito",
+                "puntaje": 26900
+            }
+        ]
+    },
+    "KENNYZZZZ1": {
+        "nickname": "KNY",
+        "historial": [
+            {
+                "fecha": "2025-06-10 16:46:56",
+                "modo": "infinito",
+                "puntaje": 65800
+            },
+            {
+                "fecha": "2025-06-10 16:44:02",
+                "modo": "infinito",
+                "puntaje": 53150
+            },
+            {
+                "fecha": "2025-06-10 16:41:41",
+                "modo": "infinito",
+                "puntaje": 4800
+            },
+            {
+                "fecha": "2025-06-10 16:41:09",
+                "modo": "infinito",
+                "puntaje": 7700
+            },
+            {
+                "fecha": "2025-06-10 16:40:28",
+                "modo": "infinito",
+                "puntaje": 20300
+            }
+        ]
     }
 }

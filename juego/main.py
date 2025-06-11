@@ -109,6 +109,7 @@ while True:
     # Paso 3: Actuar según la opción elegida
     if modo == 0:
         game.modo = "niveles"
+        game.cargar_puntaje_alto()
         game.nivel_actual = 1
         game.reinicio()
         game.corre = True
@@ -116,6 +117,7 @@ while True:
 
     elif modo == 1:
         game.modo = "infinito"
+        game.cargar_puntaje_alto()
         game.nivel_actual = 1
         game.reinicio()
         game.corre = True
@@ -167,6 +169,48 @@ while True:
                     game.reinicio()
                     pygame.time.set_timer(disparo_laser, game.get_alien_laser_frecuencia())
                     nivel_anterior = game.nivel_actual
+            if event.key == pygame.K_ESCAPE:
+                # Volver directamente al menú
+                game.reinicio()
+                game.corre = False
+                game.transicion_nivel = False
+
+                # Volver al menú principal
+                while True:
+                    modo = None 
+                    while modo is None:
+                        menu.mostrar_menu()
+                        for e in pygame.event.get():
+                            if e.type == pygame.QUIT:
+                                pygame.quit()
+                                sys.exit()
+                            modo = menu.manejar_evento_menu(e)
+
+                    if modo == 0:
+                        game.modo = "niveles"
+                        game.cargar_puntaje_alto()
+                        game.nivel_actual = 1
+                        game.reinicio()
+                        game.corre = True
+                        break
+
+                    elif modo == 1:
+                        game.modo = "infinito"
+                        game.cargar_puntaje_alto()
+                        game.nivel_actual = 1
+                        game.reinicio()
+                        game.corre = True
+                        break
+
+                    elif modo == 2:
+                        historial = PantallaHistorial(screen, font, nombre_usuario)
+                        historial.mostrar()
+
+                    elif modo == 3:
+                        top = PantallaTop5(screen, font)
+                        top.mostrar()
+
+                            
 
 
 
@@ -206,8 +250,9 @@ while True:
     pygame.draw.line(screen, MORADO, (25, 750), (775, 750), 3)
     
     # Dibujar elementos del juego
-    game.nave_grupo.draw(screen)
-    game.nave_grupo.sprite.lasers_group.draw(screen)
+    if game.nave_grupo.sprite:
+        game.nave_grupo.draw(screen)
+        game.nave_grupo.sprite.lasers_group.draw(screen)
 
     # Dibujar puntaje
     screen.blit(puntaje_texto_superficie, (50, 15, 50, 50))
@@ -219,7 +264,7 @@ while True:
     screen.blit(puntaje_alto_texto_superficie, (600, 15, 50, 50))
     formato_puntaje_alto = f"{game.nickname_puntaje} - {str(game.puntaje_mas_alto).zfill(5)}"
     puntaje_alto_superficie = font.render(formato_puntaje_alto, False, AMARILLO)
-    screen.blit(puntaje_alto_superficie, (645, 40))
+    screen.blit(puntaje_alto_superficie, (600, 40))
 
     # Mostrar modo infinito si aplica
     if game.modo == "infinito":
